@@ -1,0 +1,54 @@
+openapi: 3.0.3
+info:
+  title: CollectionApp API - Health
+  version: 1.0.0
+  description: >
+    Point de vérification de santé du walking skeleton (spec 001-health-status).
+    Accessible sans authentification. Aucun détail technique n'est exposé (FR-005b).
+paths:
+  /api/health:
+    get:
+      operationId: getHealth
+      summary: État de santé de l'API et de la base de données
+      tags: [Health]
+      security: []
+      responses:
+        '200':
+          description: API et base de données opérationnelles.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+              example:
+                api: ok
+                database: ok
+                checkedAt: '2026-10-28T09:15:42.123Z'
+        '503':
+          description: >
+            L'API répond mais la base est KO (injoignable, délai de 2 s dépassé,
+            ou migration en attente). Le corps a le même format que pour 200.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+              example:
+                api: ok
+                database: ko
+                checkedAt: '2026-10-28T09:15:42.123Z'
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      additionalProperties: false
+      required: [api, database, checkedAt]
+      properties:
+        api:
+          type: string
+          enum: [ok]
+        database:
+          type: string
+          enum: [ok, ko]
+        checkedAt:
+          type: string
+          format: date-time
+          description: Instant UTC de la vérification (ISO 8601, suffixe Z).

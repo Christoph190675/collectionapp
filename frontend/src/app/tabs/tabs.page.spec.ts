@@ -23,4 +23,12 @@ describe('TabsPage', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('US1-AC2 : onglet Statut présent', () => {
+    const tab: HTMLElement | null = fixture.nativeElement.querySelector('ion-tab-button[tab="status"]');
+
+    expect(tab).not.toBeNull();
+    expect(tab!.getAttribute('href')).toBe('/tabs/status');
+    expect(tab!.textContent?.trim()).toBe('Statut');
+  });
 });

@@ -7,6 +7,7 @@ using CollectionApp.Api.Http.Security;
 using CollectionApp.Api.Swagger;
 using CollectionApp.Application.Messaging;
 using CollectionApp.Application.Security;
+using CollectionApp.Infrastructure;
 using CollectionApp.Infrastructure.Utils;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,6 +22,8 @@ namespace CollectionApp.Api
 {
     public class Startup
     {
+        private const string CORS_POLICY = "Frontend";
+
         public IConfiguration Configuration { get; private set; }
         public string Environment { get; private set; }
         protected List<Assembly> LoadedAssemblies { get; private set; } = AssemblyTools.GetAssemblies();
@@ -58,9 +61,14 @@ namespace CollectionApp.Api
             ///////////////////////////////////////////
             InitializeServices(services, Configuration);
 
-            //CORS
+            //CORS: exact (case-insensitive) match on the configured origins, never a prefix match
             ///////////////////////////
-            services.AddCors();
+            var corsOrigins = Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+            Console.WriteLine("Allowed Origins = " + string.Join(";", corsOrigins));
+            services.AddCors(options => options.AddPolicy(CORS_POLICY, builder => builder
+                .SetIsOriginAllowed(origin => corsOrigins.Contains(origin, StringComparer.OrdinalIgnoreCase))
+                .AllowAnyHeader().AllowAnyMethod().AllowCredentials()
+                .WithExposedHeaders("Content-Disposition", "Authorization", "Access-Control-Allow-Origin")));
 
             services.AddHsts(options =>
             {
@@ -150,21 +158,15 @@ namespace CollectionApp.Api
             ///////////////////////////
             app.AddSwagger(Configuration, apiVersionProvider);
             
-            // CORS
-            ////////////////////////////////////////////////
-            var corsOrigins = (Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? []).Select(x => x.ToLower()).ToList();
-            Console.WriteLine("Allowed Origins = " + string.Join(";", corsOrigins));
-            app.UseCors(builder => builder
-                .SetIsOriginAllowed(origin => corsOrigins.Any(x => origin?.StartsWith(x) ?? false))
-                .AllowAnyHeader().AllowAnyMethod().AllowCredentials()
-                .WithExposedHeaders("Content-Disposition", "Authorization", "Access-Control-Allow-Origin"));
-
-
             // Add middlewares
             ////////////////////////////////////////////
 
             //Microsoftt middlewares
             app.UseRouting();
+
+            // CORS (after routing, before authentication)
+            ////////////////////////////////////////////////
+            app.UseCors(CORS_POLICY);
 
             //Checking response middleware
             app.UseStatusCodePages(statusCodeContext =>
@@ -189,7 +191,11 @@ namespace CollectionApp.Api
 
             //Endpoints & Redirections
             /////////////////////////////////////
-            app.UseHttpsRedirection();
+            // Not in Development: emulators/devices call the API over plain HTTP (dev certificate not trusted)
+            if (!env.IsDevelopment())
+            {
+                app.UseHttpsRedirection();
+            }
 
             app.UseEndpoints(endpoints =>
             {
@@ -227,7 +233,10 @@ namespace CollectionApp.Api
 
         private void InitializeServices(IServiceCollection services, IConfiguration configuration)
         {
-            
+            services.AddSingleton(TimeProvider.System);
+
+            // Persistence & external resources
+            services.AddInfrastructure(configuration);
         }
 
         private void ConfigureApiVersion(IServiceCollection services)
