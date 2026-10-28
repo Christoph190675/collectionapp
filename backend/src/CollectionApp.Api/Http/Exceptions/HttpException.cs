@@ -1,7 +1,6 @@
 using System.Net;
 using System.Text;
-using CollectionApp.Domain.Exceptions;
-using CollectionApp.Domain.Security;
+using CollectionApp.Api.Http.Security;
 using Newtonsoft.Json;
 
 namespace CollectionApp.Api.Http.Exceptions
@@ -65,10 +64,7 @@ namespace CollectionApp.Api.Http.Exceptions
         /// <returns>A HttpStatusCode</returns>
         private HttpStatusCode GetStatus()
         {
-            if (_baseException is AbstractException)
-                return ((AbstractException)_baseException).Code;
-        
-            return HttpStatusCode.InternalServerError;
+            return ExceptionStatusMapper.GetStatusCode(_baseException);
         }
 
 

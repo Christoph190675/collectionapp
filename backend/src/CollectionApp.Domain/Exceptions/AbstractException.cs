@@ -1,15 +1,13 @@
-using System.Net;
-
 namespace CollectionApp.Domain.Exceptions {
 
-    
+    /// <summary>
+    /// Base class of the domain exceptions.
+    /// The HTTP status code is chosen by the API (see ExceptionStatusMapper), not by the domain.
+    /// </summary>
     public abstract class AbstractException : Exception
     {
-        public HttpStatusCode Code {get; private set;}
-
-        public AbstractException(HttpStatusCode code, string message) : base(message)
+        public AbstractException(string message) : base(message)
         {
-            Code = code;
         }
     }
 }

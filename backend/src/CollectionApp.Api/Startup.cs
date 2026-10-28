@@ -3,8 +3,10 @@ using CollectionApp.Api.Http.Configurations;
 using CollectionApp.Api.Http.Exceptions;
 using CollectionApp.Api.Http.Filters;
 using CollectionApp.Api.Http.Middlewares;
+using CollectionApp.Api.Http.Security;
 using CollectionApp.Api.Swagger;
 using CollectionApp.Application.Messaging;
+using CollectionApp.Application.Security;
 using CollectionApp.Infrastructure.Utils;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
@@ -37,6 +39,9 @@ namespace CollectionApp.Api
         {
             // Default HttpContextAccessor
             services.AddHttpContextAccessor();
+
+            // Current user (claims based)
+            services.AddScoped<ICurrentUser, CurrentUser>();
 
             // Default processing stratgey
             ///////////////////////////////////////
