@@ -5,4 +5,7 @@
     <Project Path="src/CollectionApp.Domain/CollectionApp.Domain.csproj" />
     <Project Path="src/CollectionApp.Infrastructure/CollectionApp.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CollectionApp.Tests/CollectionApp.Tests.csproj" />
+  </Folder>
 </Solution>

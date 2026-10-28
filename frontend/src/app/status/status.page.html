@@ -1,0 +1,45 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Statut</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Statut</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-list>
+    <ion-item data-testid="api-status">
+      <ion-label>
+        API
+        @if (errorMessage(result()?.error); as message) {
+          <p data-testid="api-error">{{ message }}</p>
+        }
+      </ion-label>
+      <ion-badge slot="end" [color]="color(result()?.api)">{{ label(result()?.api) }}</ion-badge>
+    </ion-item>
+
+    <ion-item data-testid="database-status">
+      <ion-label>Base de données</ion-label>
+      <ion-badge slot="end" [color]="color(result()?.database)">{{ label(result()?.database) }}</ion-badge>
+    </ion-item>
+  </ion-list>
+
+  @if (result(); as current) {
+    <p class="checked-at ion-padding-horizontal" data-testid="checked-at">
+      Dernière vérification : {{ current.checkedAt | date: 'HH:mm:ss' }}
+    </p>
+  }
+
+  <div class="ion-padding">
+    <ion-button expand="block" data-testid="refresh" [disabled]="loading()" (click)="refresh()">
+      @if (loading()) {
+        <ion-spinner slot="start" name="crescent" data-testid="spinner"></ion-spinner>
+      }
+      Relancer
+    </ion-button>
+  </div>
+</ion-content>

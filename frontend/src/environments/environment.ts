@@ -3,7 +3,9 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  // Plain HTTP in development: Firefox does not trust the Windows-store dev certificate.
+  apiUrl: 'http://localhost:8080/',
 };
 
 /*
