@@ -1,21 +1,3 @@
-<!--
-Sync Impact Report
-- Version change: (template non rempli) → 1.0.0
-- Principes définis (création initiale) :
-  I. Spec d'abord (NON-NÉGOCIABLE)
-  II. Critères d'acceptation testés (NON-NÉGOCIABLE)
-  III. Contrat API explicite
-  IV. Clean Architecture back-end
-  V. Migrations EF Core immuables
-  VI. Front mobile-first sans logique métier
-  VII. Aucun secret versionné
-  VIII. Simplicité d'abord
-- Sections ajoutées : Stack & contraintes techniques, Workflow de développement, Governance
-- Sections supprimées : aucune
-- Templates : non modifiés (lus à l'exécution par les commandes Spec Kit)
-- TODO différés : aucun
--->
-
 # Collection App Constitution
 
 Application mobile de gestion de collections (TCG, vinyles, jeux vidéo, etc.).
