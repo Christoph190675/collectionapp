@@ -49,6 +49,32 @@ namespace CollectionApp.Api.Controllers
         }
 
         /// <summary>
+        /// Renew the session: new access token and new refresh token, the previous one is revoked
+        /// </summary>
+        [AllowAnonymous]
+        [HttpPost("refresh")]
+        [ProducesResponseType<AuthSessionDto>(StatusCodes.Status200OK)]
+        [ProducesResponseType<HttpExceptionBodyError>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<HttpExceptionBodyError>(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<AuthSessionDto>> Refresh(RefreshTokenCommand command, CancellationToken cancellationToken)
+        {
+            return await _mediator.Send(command, cancellationToken);
+        }
+
+        /// <summary>
+        /// Log out of the current device (idempotent)
+        /// </summary>
+        [Authorize]
+        [HttpPost("logout")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType<HttpExceptionBodyError>(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> Logout(LogoutCommand command, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(command, cancellationToken);
+            return NoContent();
+        }
+
+        /// <summary>
         /// The authenticated user and its rights
         /// </summary>
         [Authorize]

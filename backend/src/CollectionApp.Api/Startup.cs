@@ -260,15 +260,24 @@ namespace CollectionApp.Api
                 {
                     options.MapInboundClaims = false;
                     options.TimeProvider = timeProvider;
+                    // 5 min by default: access would last up to 20 min after logout (FR-014)
+                    var clockSkew = TimeSpan.FromSeconds(30);
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidIssuer = authOptions.Value.Issuer,
                         ValidAudience = authOptions.Value.Audience,
                         IssuerSigningKey = JwtTokenService.CreateSigningKey(authOptions.Value),
                         ValidAlgorithms = [SecurityAlgorithms.HmacSha256],
-                        // 5 min by default: access would last up to 20 min after logout (FR-014)
-                        ClockSkew = TimeSpan.FromSeconds(30),
+                        ClockSkew = clockSkew,
                         NameClaimType = ClaimPrincipalTypes.Subject,
+                        RequireExpirationTime = true,
+                        // Lifetime checked with the application clock: the token handler would use DateTime.UtcNow
+                        LifetimeValidator = (notBefore, expires, _, _) =>
+                        {
+                            var now = timeProvider.GetUtcNow().UtcDateTime;
+                            return (notBefore == null || notBefore.Value <= now + clockSkew)
+                                && expires != null && now - clockSkew < expires.Value;
+                        },
                     };
                 });
 
