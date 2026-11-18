@@ -23,3 +23,4 @@ exécution réelle sur GitHub (T006 à T008), y compris un échec volontaire (SC
 - [ ] T006 [US1] Ouvrir la PR de `feat/#4` : les statuts « Back (.NET) » et « Front (Angular) » apparaissent et passent (US1-AC1, SC-001), durée < 10 min (SC-002).
 - [ ] T007 [US1] Sur une branche jetable : casser un test back et un test front → chaque vérification échoue sur la bonne étape (US1-AC2, SC-003) ; modifier une entité sans migration → « Check pending model changes » échoue (US1-AC4). Branche supprimée ensuite.
 - [ ] T008 [US2] Après fusion : une exécution démarre sur `main` (US2-AC1).
+- [X] T009 Protection de branche sur `main` (demande du 2026-11-18) : PR obligatoire, statuts « Back (.NET) » et « Front (Angular) » requis (émis par GitHub Actions), push forcé et suppression interdits ; documentée dans `quickstart.md`.

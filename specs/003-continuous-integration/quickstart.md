@@ -34,9 +34,18 @@ cd ../frontend
 npm ci; npx ng lint; npx ng test --watch=false; npx ng build
 ```
 
-## Rendre la CI obligatoire avant merge (propriétaire du dépôt)
+## CI obligatoire avant merge (activée le 2026-11-18)
 
-GitHub → **Settings** → **Branches** (ou **Rules** → **Rulesets**) → règle sur `main` :
-- « Require a pull request before merging » ;
-- « Require status checks to pass » → sélectionner **Back (.NET)** et **Front (Angular)**
-  (ils n'apparaissent dans la liste qu'après une première exécution).
+Protection de branche sur `main` (GitHub → **Settings** → **Branches**) :
+- pull request obligatoire (aucune approbation exigée : projet à un seul développeur) ;
+- statuts requis **Back (.NET)** et **Front (Angular)**, acceptés uniquement s'ils viennent de
+  GitHub Actions ; la branche n'a pas à être à jour avec `main` pour fusionner ;
+- push forcé et suppression de `main` interdits ;
+- les administrateurs peuvent contourner la règle (case « bypass » explicite au moment du merge,
+  ou `gh pr merge --admin`) : à réserver aux urgences.
+
+Vérifier la règle en ligne de commande :
+
+```powershell
+gh api repos/Christoph190675/collectionapp/branches/main/protection --jq "{checks: [.required_status_checks.checks[].context], enforce_admins: .enforce_admins.enabled}"
+```

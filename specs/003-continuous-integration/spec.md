@@ -98,7 +98,7 @@ pour détecter immédiatement un problème issu de la combinaison de plusieurs b
 
 - Plateforme : GitHub Actions (le dépôt est hébergé sur GitHub), runners Linux hébergés par
   GitHub, sur lesquels Docker est disponible pour Testcontainers.
-- Rendre les vérifications obligatoires avant merge (« branch protection ») est un réglage du
-  dépôt GitHub laissé au propriétaire : hors périmètre du code, documenté dans le quickstart.
+- Les vérifications sont obligatoires avant merge sur `main` (protection de branche, réglage du
+  dépôt GitHub activé le 2026-11-18 à la demande du propriétaire, voir quickstart).
 - Hors périmètre : déploiement, build Android/iOS, analyse de couverture, publication d'artefacts
   applicatifs.
