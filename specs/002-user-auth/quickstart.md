@@ -16,7 +16,8 @@ Guide de validation de bout en bout. Les commandes sont lancées depuis la racin
 
 ```powershell
 # Clé de signature JWT : au moins 32 octets aléatoires, jamais versionnée (principe VII)
-$key = [Convert]::ToBase64String((1..48 | ForEach-Object { Get-Random -Maximum 256 }))
+$bytes = New-Object byte[] 48; [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+$key = [Convert]::ToBase64String($bytes)
 dotnet user-secrets set "Jwt:SigningKey" $key --project backend/src/CollectionApp.Api
 
 # Schéma : tables users, claimValues, userClaims, logins, refreshTokens + droits User / LogRead

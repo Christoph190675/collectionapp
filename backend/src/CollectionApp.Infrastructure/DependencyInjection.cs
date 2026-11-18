@@ -1,5 +1,10 @@
+using System.Text;
+using CollectionApp.Application.Auth;
 using CollectionApp.Application.Health;
+using CollectionApp.Domain.Users;
 using CollectionApp.Infrastructure.Persistence;
+using CollectionApp.Infrastructure.Persistence.Repositories;
+using CollectionApp.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +35,21 @@ namespace CollectionApp.Infrastructure
             services.AddDbContext<CollectionAppDbContext>(options => options.UseMySQL(connectionString));
 
             services.AddScoped<IDatabaseHealthChecker, DatabaseHealthChecker>();
+
+            // Users & authentication
+            var authOptions = configuration.GetSection(AuthOptions.SectionName).Get<AuthOptions>() ?? new AuthOptions();
+            if (Encoding.UTF8.GetByteCount(authOptions.SigningKey ?? "") < AuthOptions.MinSigningKeyBytes)
+            {
+                throw new InvalidOperationException(
+                    $"'{AuthOptions.SectionName}:SigningKey' is missing or shorter than {AuthOptions.MinSigningKeyBytes} bytes. " +
+                    "Set it with 'dotnet user-secrets set \"Jwt:SigningKey\" \"...\"'.");
+            }
+            services.Configure<AuthOptions>(configuration.GetSection(AuthOptions.SectionName));
+
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            services.AddSingleton<IPasswordHasher, IdentityPasswordHasher>();
+            services.AddSingleton<ITokenService, JwtTokenService>();
 
             return services;
         }

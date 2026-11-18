@@ -15,6 +15,10 @@ namespace CollectionApp.Api.Http.Exceptions
         {
             context.Response.StatusCode = (int)body.Status;
             context.Response.ContentType = "application/json";
+            if (body.RetryAfter.HasValue)
+            {
+                context.Response.Headers.RetryAfter = ((int)Math.Ceiling(body.RetryAfter.Value.TotalSeconds)).ToString();
+            }
             await context.Response.WriteAsync(JsonConvert.SerializeObject(body.Error));
         }
         

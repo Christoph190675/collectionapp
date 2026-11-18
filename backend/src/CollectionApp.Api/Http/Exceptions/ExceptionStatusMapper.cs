@@ -25,6 +25,7 @@ namespace CollectionApp.Api.Http.Exceptions
                 TooLargeException => HttpStatusCode.RequestEntityTooLarge,
                 UnauthorizedException => HttpStatusCode.Unauthorized,
                 UnsupportedMediaTypeException => HttpStatusCode.UnsupportedMediaType,
+                FluentValidation.ValidationException => HttpStatusCode.BadRequest,
                 _ => HttpStatusCode.InternalServerError
             };
         }
