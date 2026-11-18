@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-28
 
-**Status**: Validated (2026-10-28)
+**Status**: Validated (2026-10-28) — amended 2026-11-18 (FR-002, US1-3)
 
 **Input**: User description: "Walking skeleton : en tant que développeur, je veux qu'un onglet
 "Statut" de l'application mobile affiche l'état de santé de l'API et de la base de données, afin de
@@ -30,6 +30,17 @@ vérifier que toute la chaîne front -> API -> base fonctionne."
   l'application installée (émulateur/téléphone) ? → A: Les deux ; liste d'origines autorisées
   configurable par environnement.
 
+### Amendement 2026-11-18
+
+- Défaut constaté pendant la recette de la feature 002 : quand l'application démarre directement
+  sur l'onglet « Statut » (lien `/tabs/status`, rechargement de la page, réouverture de
+  l'application sur cet onglet), aucune vérification n'est lancée et l'écran reste sur « … »
+  jusqu'à un appui sur « Relancer ». Seule l'ouverture par la barre d'onglets déclenchait la
+  vérification.
+- Q: L'ouverture de l'onglet au démarrage de l'application compte-t-elle comme une
+  « ouverture » au sens de FR-002 ? → A: Oui ; toute ouverture de l'onglet, quel qu'en soit le
+  chemin, lance exactement une vérification automatique (FR-002 précisé, scénario US1-3 ajouté).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Vérifier que toute la chaîne fonctionne (Priority: P1)
@@ -51,6 +62,11 @@ constater l'affichage API = OK et Base de données = OK.
 2. **Given** l'application est lancée,
    **When** le développeur consulte la barre de navigation,
    **Then** un onglet « Statut » est présent et accessible.
+3. **Given** l'API et la base de données sont démarrées et la base est initialisée,
+   **When** l'application démarre directement sur l'onglet « Statut » (lien direct ou
+   rechargement de la page),
+   **Then** une seule vérification est lancée automatiquement et l'écran affiche
+   « API = OK » et « Base de données = OK » sans action du développeur.
 
 ---
 
@@ -164,8 +180,9 @@ est créé et que la migration initiale est enregistrée comme appliquée.
 ### Functional Requirements
 
 - **FR-001**: L'application mobile MUST proposer un onglet « Statut » dans sa navigation principale.
-- **FR-002**: À l'ouverture de l'onglet, l'application MUST lancer automatiquement une vérification
-  de santé.
+- **FR-002**: À chaque ouverture de l'onglet, l'application MUST lancer automatiquement une
+  vérification de santé, et une seule, que l'onglet soit ouvert depuis la barre d'onglets ou que
+  l'application démarre directement dessus (lien, rechargement). *(Précisé le 2026-11-18.)*
 - **FR-003**: L'API MUST exposer un point de vérification de santé, accessible sans
   authentification, qui renvoie l'état de l'API et l'état de la base de données.
 - **FR-004**: L'état de la base de données MUST refléter une connexion effective à la base au

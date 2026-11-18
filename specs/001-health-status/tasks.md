@@ -251,6 +251,15 @@ Task: "T024-T026 frontend service/page/tabs"
 - Committer après chaque tâche ou groupe logique
 - SC-001 (moins de 2 s) et FR-015 (Android) sont validés manuellement (T046). Pour SC-002, la borne de 6 s repose sur le timeout front de 5 s (testé en T029) et sur la limite de 2 s côté API (testée en T028).
 
+## Phase 9: Amendement 2026-11-18 — vérification au démarrage sur l'onglet Statut (FR-002, US1-3)
+
+**Cause** : Ionic ne déclenche pas `ionViewWillEnter` pour la première page d'un onglet chargée
+directement (lien `/tabs/status`, rechargement) ; la vérification n'était lancée que depuis ce hook.
+
+- [X] T047 [US1] Test d'abord dans `frontend/src/app/status/status.page.spec.ts` : `'US1-AC3 : démarrage direct sur l'onglet (création sans ionViewWillEnter) → une vérification'` et `'US1-AC3 : création puis ionViewWillEnter → une seule vérification'` ; ils doivent échouer.
+- [X] T048 [US1] Dans `frontend/src/app/status/status.page.ts`, lancer la vérification à la création de la page (`ngOnInit`) en plus de `ionViewWillEnter` ; la garde existante de `refresh()` (aucun nouvel appel pendant une vérification en cours) garantit une seule requête quand les deux se suivent. T047 doit passer, ainsi que les tests existants.
+- [X] T049 Valider en conditions réelles : ouverture de `http://localhost:8100/tabs/status` par URL, puis rechargement (F5) → API = OK / Base = OK sans appui sur « Relancer », une seule requête `/api/health` ; ouverture par la barre d'onglets inchangée (quickstart scénario 1b).
+
 ## État d'implémentation (2026-10-28)
 
 - Back : 18 tests verts (`dotnet test backend/CollectionApp.slnx`), dont le contrôle OpenAPI (T043, automatisé dans `HealthOpenApiTests`).

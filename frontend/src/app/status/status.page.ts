@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import {
   IonBadge,
   IonButton,
@@ -44,21 +44,39 @@ const ERROR_MESSAGES: Record<HealthCheckError, string> = {
     IonSpinner,
   ],
 })
-export class StatusPage {
+export class StatusPage implements OnInit {
   private readonly healthService = inject(HealthService);
   private subscription?: Subscription;
+
+  /** A check was already started for the current visit of the tab (FR-002: exactly one per opening). */
+  private checkedThisVisit = false;
 
   readonly result = signal<HealthCheckResult | null>(null);
   readonly loading = signal(false);
 
+  // Ionic does not fire ionViewWillEnter for the first page of a tab loaded directly
+  // (link, reload): the page creation also counts as an opening (amendment 2026-11-18)
+  ngOnInit(): void {
+    this.checkOnOpening();
+  }
+
   ionViewWillEnter(): void {
-    this.refresh();
+    this.checkOnOpening();
   }
 
   ionViewWillLeave(): void {
     this.subscription?.unsubscribe();
     this.subscription = undefined;
     this.loading.set(false);
+    this.checkedThisVisit = false;
+  }
+
+  private checkOnOpening(): void {
+    if (this.checkedThisVisit) {
+      return;
+    }
+    this.checkedThisVisit = true;
+    this.refresh();
   }
 
   refresh(): void {
