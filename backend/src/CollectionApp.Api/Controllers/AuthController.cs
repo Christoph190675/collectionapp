@@ -33,5 +33,31 @@ namespace CollectionApp.Api.Controllers
             var user = await _mediator.Send(command, cancellationToken);
             return StatusCode(StatusCodes.Status201Created, user);
         }
+
+        /// <summary>
+        /// Log in. Wrong password and unknown e-mail get the same 401; 423 (with Retry-After) after 5 failures.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpPost("login")]
+        [ProducesResponseType<AuthSessionDto>(StatusCodes.Status200OK)]
+        [ProducesResponseType<HttpExceptionBodyError>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<HttpExceptionBodyError>(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType<HttpExceptionBodyError>(StatusCodes.Status423Locked)]
+        public async Task<ActionResult<AuthSessionDto>> Login(LoginCommand command, CancellationToken cancellationToken)
+        {
+            return await _mediator.Send(command, cancellationToken);
+        }
+
+        /// <summary>
+        /// The authenticated user and its rights
+        /// </summary>
+        [Authorize]
+        [HttpGet("me")]
+        [ProducesResponseType<UserDto>(StatusCodes.Status200OK)]
+        [ProducesResponseType<HttpExceptionBodyError>(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<UserDto>> Me(CancellationToken cancellationToken)
+        {
+            return await _mediator.Send(new GetCurrentUserQuery(), cancellationToken);
+        }
     }
 }

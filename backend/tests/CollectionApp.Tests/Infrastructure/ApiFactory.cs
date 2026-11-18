@@ -38,6 +38,8 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
         _allowedOrigins = allowedOrigins ?? DevOrigins;
         _swagger = swagger;
         _rateLimiting = rateLimiting;
+        // HTTPS like in production: following the http -> https redirection would drop the Authorization header
+        ClientOptions.BaseAddress = new Uri("https://localhost");
     }
 
     public FakeLogCollector Logs => Services.GetRequiredService<FakeLogCollector>();
