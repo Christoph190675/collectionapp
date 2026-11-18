@@ -59,7 +59,8 @@ Navigation : `ICollection<UserClaim> UserClaims`.
 | 2 | `LogRead` | Lecture des journaux |
 
 Les noms sont exposés en constantes dans `ClaimValue` (`ClaimValue.UserName = "User"`) ;
-`ClaimPrincipalValues.LogRead` (Api) reste la constante utilisée côté autorisation.
+`ClaimPrincipalValues.LogRead` (déplacée dans `Application/Security`, partagée par Api et
+Infrastructure) reste la constante utilisée côté autorisation.
 
 ## userClaims — `UserClaim`
 

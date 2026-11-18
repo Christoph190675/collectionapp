@@ -69,7 +69,7 @@ sessions, 5 endpoints, 2 écrans.
 | I. Spec d'abord | Spec 002 validée (clarifications du 2026-11-18) ; FR-009 et FR-014 amendés pour refléter D1/D2 avant tout code | ✅ |
 | II. Critères testés | Chaque scénario d'acceptation → test d'intégration API ou test Vitest (mapping dans `tasks.md`) | ✅ |
 | III. Contrat API explicite | 5 endpoints documentés OpenAPI ; DTO dans `Application`, entités jamais exposées ; `AuthController` délègue à MediatR | ✅ |
-| IV. Clean Architecture | Entités + interfaces de repositories dans `Domain` ; commandes/handlers/DTO/interfaces `IPasswordHasher` et `ITokenService` dans `Application` ; EF, hachage et émission JWT dans `Infrastructure` ; `Api` = contrôleur + configuration JwtBearer | ✅ |
+| IV. Clean Architecture | Entités + interfaces de repositories dans `Domain` ; commandes/handlers/DTO/interfaces `IPasswordHasher` et `ITokenService` dans `Application` ; EF, hachage et émission JWT dans `Infrastructure` ; `Api` = contrôleur + configuration JwtBearer. `Api` ne référence `Domain.Exceptions` que dans `Http/Exceptions/` (exception autorisée par la constitution v1.1.0) ; le contrôleur ne lit aucune entité (le `Retry-After` vient de `LockedException.RetryAfter`). Constantes de claims (`ClaimPrincipalTypes`/`Values`) déplacées dans `Application/Security` pour être partagées par Api et Infrastructure | ✅ |
 | V. Migrations immuables | Nouvelle migration `AddUserAuth`, aucune migration existante modifiée | ✅ |
 | VI. Front sans logique métier | Validations de formulaire uniquement ergonomiques (les règles font foi côté API) ; appels HTTP centralisés dans `AuthService` | ✅ |
 | VII. Aucun secret versionné | Clé JWT dans user-secrets ; seule une valeur d'exemple vide dans `appsettings.json` | ✅ |
@@ -82,7 +82,7 @@ sessions, 5 endpoints, 2 écrans.
 | I | spec, research, data-model, contrat et quickstart cohérents (FR-009/FR-014 amendés) | ✅ |
 | II | Chaque scénario US1-1 → US4-3 a un test prévu (R11) et une ligne dans le quickstart | ✅ |
 | III | `contracts/auth.openapi.yaml` : 5 endpoints, DTO `User`/`AuthSession` sans hash ni entité | ✅ |
-| IV | Entités + règles `Login`/`RefreshToken` + repositories (interfaces) dans Domain ; hachage/JWT/EF dans Infrastructure | ✅ |
+| IV | Entités + règles `Login`/`RefreshToken` + repositories (interfaces) dans Domain ; hachage/JWT/EF dans Infrastructure ; Api → Domain limité à `Http/Exceptions/` (constitution v1.1.0, analyse C1) | ✅ |
 | V | Une seule nouvelle migration `AddUserAuth` (schéma + `HasData`) | ✅ |
 | VI | Front : validation ergonomique seulement, `AuthService` + intercepteur + guard | ✅ |
 | VII | `Jwt:SigningKey` en user-secrets ; tokens de session stockés hachés | ✅ |
