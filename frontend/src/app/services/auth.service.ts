@@ -18,6 +18,7 @@ export class AuthService {
 
   /** Refresh in progress, shared by every request failing with 401 at the same time (R10). */
   private refreshInFlight: Observable<AuthSession> | null = null;
+  private loadingUser: Promise<UserDto | null> | null = null;
 
   readonly currentUser = signal<UserDto | null>(null);
 
@@ -64,7 +65,13 @@ export class AuthService {
   }
 
   /** At startup: restores the user if the stored session is still valid (US2-AC7). */
-  async loadCurrentUser(): Promise<UserDto | null> {
+  loadCurrentUser(): Promise<UserDto | null> {
+    // Called at startup and by the guard of the first screen: a single /me request
+    this.loadingUser ??= this.fetchCurrentUser().finally(() => (this.loadingUser = null));
+    return this.loadingUser;
+  }
+
+  private async fetchCurrentUser(): Promise<UserDto | null> {
     if (!(await this.storage.get())) {
       this.currentUser.set(null);
       return null;

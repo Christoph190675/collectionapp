@@ -178,15 +178,15 @@ doivent d'abord échouer. Chaque nom de test back reprend l'identifiant du crit�
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T061 [P] [US4] Tests Vitest dans `frontend/src/app/guards/auth.guard.spec.ts` : `'US4-AC1 : non connecté → redirection /login'` ; `'US4-AC2 : route status accessible sans connexion'` ; `'connecté → accès autorisé'`.
-- [ ] T062 [P] [US4] Tests Vitest dans `frontend/src/app/interceptors/auth.interceptor.spec.ts` : ajoute `Authorization: Bearer` sauf sur `api/auth/login|register|refresh` et `api/health` ; `'401 → un seul refresh puis requête rejouée'` ; `'3 requêtes en 401 simultanées → un seul appel /refresh'` ; `'US4-AC3 : refresh en échec → stockage vidé + /login?expired=1'` ; `'US2-AC7 : réouverture après expiration de l'access token → /me 401 → refresh → /me rejoué → connecté'` (complète US2-AC7, analyse M1).
-- [ ] T063 [P] [US4] Test d'intégration back dans `backend/tests/CollectionApp.Tests/Auth/ProtectedEndpointTests.cs` : `US4_AC2_HealthStaysAnonymous` (`/api/health` 200 sans token) ; `US4_AC3_ExpiredAccessToken_Returns401` (`Clock` + 15 min 31 s).
+- [X] T061 [P] [US4] Tests Vitest dans `frontend/src/app/guards/auth.guard.spec.ts` : `'US4-AC1 : non connecté → redirection /login'` ; `'US4-AC2 : route status accessible sans connexion'` ; `'connecté → accès autorisé'`.
+- [X] T062 [P] [US4] Tests Vitest dans `frontend/src/app/interceptors/auth.interceptor.spec.ts` : ajoute `Authorization: Bearer` sauf sur `api/auth/login|register|refresh` et `api/health` ; `'401 → un seul refresh puis requête rejouée'` ; `'3 requêtes en 401 simultanées → un seul appel /refresh'` ; `'US4-AC3 : refresh en échec → stockage vidé + /login?expired=1'` ; `'US2-AC7 : réouverture après expiration de l'access token → /me 401 → refresh → /me rejoué → connecté'` (complète US2-AC7, analyse M1).
+- [X] T063 [P] [US4] Test d'intégration back dans `backend/tests/CollectionApp.Tests/Auth/ProtectedEndpointTests.cs` : `US4_AC2_HealthStaysAnonymous` (`/api/health` 200 sans token) ; `US4_AC3_ExpiredAccessToken_Returns401` (`Clock` + 15 min 31 s).
 
 ### Implementation for User Story 4
 
-- [ ] T064 [US4] Créer `frontend/src/app/interceptors/auth.interceptor.ts` (`HttpInterceptorFn`) selon R10 : Bearer, refresh unique partagé (`shareReplay` sur l'appel en cours), rejeu, échec → `TokenStorageService.clear()` + `router.navigate(['/login'], { queryParams: { expired: 1 } })` ; l'enregistrer dans `frontend/src/main.ts` via `provideHttpClient(withInterceptors([authInterceptor]))`.
-- [ ] T065 [US4] Créer `frontend/src/app/guards/auth.guard.ts` (`CanActivateFn`) : `currentUser` présent, sinon tentative `loadCurrentUser()`, sinon `UrlTree` vers `/login`.
-- [ ] T066 [US4] Dans `frontend/src/app/tabs/tabs.routes.ts`, appliquer `canActivate: [authGuard]` aux routes `tab1`, `tab2`, `tab3` ; **ne pas** le mettre sur `status` (FR-016). T061 à T063 doivent passer.
+- [X] T064 [US4] Créer `frontend/src/app/interceptors/auth.interceptor.ts` (`HttpInterceptorFn`) selon R10 : Bearer, refresh unique partagé (`shareReplay` sur l'appel en cours), rejeu, échec → `TokenStorageService.clear()` + `router.navigate(['/login'], { queryParams: { expired: 1 } })` ; l'enregistrer dans `frontend/src/main.ts` via `provideHttpClient(withInterceptors([authInterceptor]))`.
+- [X] T065 [US4] Créer `frontend/src/app/guards/auth.guard.ts` (`CanActivateFn`) : `currentUser` présent, sinon tentative `loadCurrentUser()`, sinon `UrlTree` vers `/login`.
+- [X] T066 [US4] Dans `frontend/src/app/tabs/tabs.routes.ts`, appliquer `canActivate: [authGuard]` aux routes `tab1`, `tab2`, `tab3` ; **ne pas** le mettre sur `status` (FR-016). T061 à T063 doivent passer.
 
 **Checkpoint**: toutes les user stories sont fonctionnelles (quickstart scénarios 1, 2, 18).
 
