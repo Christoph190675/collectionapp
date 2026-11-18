@@ -68,7 +68,7 @@ Lancer l'API (`dotnet run --project backend/src/CollectionApp.Api`) et le front
 
 - Les 5 endpoints `/api/auth/*` apparaissent dans Swagger (`http://localhost:8080/swagger`) avec
   le schéma de sécurité Bearer sur `logout` et `me`.
-- Une erreur de validation renvoie **400** avec `error.fields` (et non 500) ; aucune réponse
+- Une erreur de validation renvoie **400** avec `fields` dans le corps d'erreur (et non 500) ; aucune réponse
   d'erreur ne contient `stackTrace` pour un utilisateur sans `LogRead`.
 - Aucun mot de passe ni token en clair dans les journaux de l'API.
 - `git status` ne montre aucun secret ; la migration `InitialCreate` n'a pas été modifiée.

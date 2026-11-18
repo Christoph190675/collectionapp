@@ -150,7 +150,7 @@ Constatés en concevant le contrat d'erreur ([contracts/auth.openapi.yaml](contr
 
 1. **`ValidationException` (FluentValidation) non mappée** : `ExceptionStatusMapper` ne la connaît
    pas, donc une erreur de validation renvoie aujourd'hui **500** au lieu de 400, sans détail par
-   champ. Correction : la mapper sur 400 et ajouter `error.fields` (`field`, `message`) au corps
+   champ. Correction : la mapper sur 400 et ajouter `fields` (`field`, `message`) au corps
    d'erreur (FR-017).
 2. **Pile d'appels exposée à tous** : `HttpException.ToJson()` remplit `StackTrace` avec
    `FullStackTrace()` sans condition (la méthode `GetStackTrace()` protégée par `LogRead` n'est
