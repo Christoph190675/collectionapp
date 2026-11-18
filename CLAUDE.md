@@ -40,6 +40,14 @@ cd frontend; npm test -- --watch=false             # tests Vitest
 cd frontend; npm start                             # http://localhost:8100
 ```
 
+## Intégration continue
+
+- `.github/workflows/ci.yml` (spec 003) : sur chaque PR vers `main` et chaque push sur `main`,
+  jobs **Back (.NET)** (build Release, tests, `has-pending-model-changes`) et **Front (Angular)**
+  (`npm ci`, lint, tests, build). Reproduction locale : `specs/003-continuous-integration/quickstart.md`.
+- Une PR n'est fusionnée que si les deux statuts sont verts.
+- Avec `dotnet ef`, `-c` signifie `--context` : écrire `--configuration Release`.
+
 ## Pièges connus
 
 - L'API n'applique jamais les migrations elle-même : `dotnet ef database update` est explicite.
