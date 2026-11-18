@@ -1,0 +1,66 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Créer un compte</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    @if (errors().global; as message) {
+      <ion-text color="danger">
+        <p class="global-error" data-testid="global-error" role="alert">{{ message }}</p>
+      </ion-text>
+    }
+
+    <ion-list lines="full">
+      <ion-item>
+        <ion-input label="Nom" labelPlacement="stacked" formControlName="lastName" autocomplete="family-name"></ion-input>
+      </ion-item>
+      @if (fieldError('lastName'); as message) {
+        <ion-note color="danger" data-testid="error-lastName">{{ message }}</ion-note>
+      }
+
+      <ion-item>
+        <ion-input label="Prénom" labelPlacement="stacked" formControlName="firstName" autocomplete="given-name"></ion-input>
+      </ion-item>
+      @if (fieldError('firstName'); as message) {
+        <ion-note color="danger" data-testid="error-firstName">{{ message }}</ion-note>
+      }
+
+      <ion-item>
+        <ion-input label="Adresse e-mail" labelPlacement="stacked" type="email" inputmode="email" formControlName="email" autocomplete="email"></ion-input>
+      </ion-item>
+      @if (fieldError('email'); as message) {
+        <ion-note color="danger" data-testid="error-email">{{ message }}</ion-note>
+      }
+
+      <ion-item>
+        <ion-input label="Mot de passe" labelPlacement="stacked" type="password" formControlName="password" autocomplete="new-password"
+          helperText="8 caractères minimum, dont une lettre et un chiffre"></ion-input>
+      </ion-item>
+      @if (fieldError('password'); as message) {
+        <ion-note color="danger" data-testid="error-password">{{ message }}</ion-note>
+      }
+
+      <ion-item>
+        <ion-input label="Confirmation du mot de passe" labelPlacement="stacked" type="password" formControlName="passwordConfirmation"
+          autocomplete="new-password"></ion-input>
+      </ion-item>
+      @if (fieldError('passwordConfirmation'); as message) {
+        <ion-note color="danger" data-testid="error-passwordConfirmation">{{ message }}</ion-note>
+      }
+    </ion-list>
+
+    <ion-button type="submit" expand="block" [disabled]="submitting()" data-testid="submit">
+      @if (submitting()) {
+        <ion-spinner name="crescent"></ion-spinner>
+      } @else {
+        Créer mon compte
+      }
+    </ion-button>
+  </form>
+
+  <p class="switch">
+    <a routerLink="/login" data-testid="login-link">J'ai déjà un compte</a>
+  </p>
+</ion-content>

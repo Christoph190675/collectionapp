@@ -1,12 +1,16 @@
 using System.Net;
 using System.Text;
 using CollectionApp.Api.Http.Security;
+using CollectionApp.Application.Security;
+using CollectionApp.Domain.Exceptions;
 using Newtonsoft.Json;
 
 namespace CollectionApp.Api.Http.Exceptions
 {
     public class HttpException
     {
+        private const string VALIDATION_MESSAGE = "Les données saisies sont invalides";
+
         public HttpContext Context { get; set; }
         public HttpExceptionBody Body { get; set; }
 
@@ -76,16 +80,21 @@ namespace CollectionApp.Api.Http.Exceptions
         private HttpExceptionBody ToJson()
         {          
             var status = GetStatus();
+            var validationException = _baseException as FluentValidation.ValidationException;
             return new HttpExceptionBody()
             {
                 Status = GetStatus(),
+                RetryAfter = (_baseException as LockedException)?.RetryAfter,
                 Error = new HttpExceptionBodyError()
                 {
                     Code = _baseException.GetType().Name,
-                    Message = _baseException.Message,
+                    Message = validationException != null ? VALIDATION_MESSAGE : _baseException.Message,
                     Status = (int)GetStatus(),
+                    Fields = validationException?.Errors
+                        .Select(e => new HttpExceptionField() { Field = ToCamelCase(e.PropertyName), Message = e.ErrorMessage })
+                        .ToList(),
                     Details = GetDetails(),
-                    StackTrace = FullStackTrace()
+                    StackTrace = GetStackTrace()
                 }
             };
 
@@ -121,13 +130,21 @@ namespace CollectionApp.Api.Http.Exceptions
             return null;
         }
 
-        private string? GetStackTrace(Exception exception)
+        /// <summary>
+        /// Full stack trace, only for a user allowed to read the logs
+        /// </summary>
+        private string? GetStackTrace()
         {
             if (Context?.User?.HasClaim(ClaimPrincipalValues.LogRead) ?? false)
             {
-                return exception.StackTrace;
+                return FullStackTrace();
             }
             return null;
+        }
+
+        private static string ToCamelCase(string propertyName)
+        {
+            return string.IsNullOrEmpty(propertyName) ? propertyName : char.ToLowerInvariant(propertyName[0]) + propertyName[1..];
         }
     }
 
@@ -138,6 +155,20 @@ namespace CollectionApp.Api.Http.Exceptions
 
         [JsonProperty("error")]
         public HttpExceptionBodyError Error { get; set; }
+
+        /// <summary>
+        /// Sent as the Retry-After header (LockedException), never serialized
+        /// </summary>
+        [JsonIgnore]
+        public TimeSpan? RetryAfter { get; set; }
+    }
+
+    public class HttpExceptionField
+    {
+        [JsonProperty("field")]
+        public string Field { get; set; }
+        [JsonProperty("message")]
+        public string Message { get; set; }
     }
 
     public class HttpExceptionBodyError
@@ -150,6 +181,8 @@ namespace CollectionApp.Api.Http.Exceptions
         public string Message { get; set; }
         [JsonProperty("status")]
         public int Status { get; set; }
+        [JsonProperty(PropertyName = "fields", NullValueHandling = NullValueHandling.Ignore)]
+        public List<HttpExceptionField>? Fields { get; set; }
         [JsonProperty(PropertyName = "details", NullValueHandling = NullValueHandling.Ignore)]
         public string? Details { get; set; }
         [JsonProperty(PropertyName = "stackTrace", NullValueHandling = NullValueHandling.Ignore)]

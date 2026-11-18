@@ -1,4 +1,4 @@
-namespace CollectionApp.Api.Http.Security {
+namespace CollectionApp.Application.Security {
 
      public class ClaimPrincipalValues {
         public const string LogRead = "LogRead";

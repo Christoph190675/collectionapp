@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace CollectionApp.Api.Http.Security {
+namespace CollectionApp.Application.Security {
 
      public class ClaimPrincipalTypes {
         public const string NameIdentifier = ClaimTypes.NameIdentifier;

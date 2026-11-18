@@ -1,5 +1,4 @@
 using CollectionApp.Domain.Utils;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi;
@@ -19,30 +18,18 @@ namespace CollectionApp.Api.Swagger
             {
                 services.AddSwaggerGen(c =>
                 {
-                    // Include 'SecurityScheme'
-                    var jwtSecurityScheme = new OpenApiSecurityScheme
+                    // Access tokens issued by POST /api/auth/login (contracts/auth.openapi.yaml)
+                    c.AddSecurityDefinition(BearerSecurityOperationFilter.SchemeName, new OpenApiSecurityScheme
                     {
-                        Flows = new OpenApiOAuthFlows
-                        {
-                            ClientCredentials = new OpenApiOAuthFlow
-                            {
-                                TokenUrl = new Uri(configuration["EndPoints:AuthenticationAPI"] + "/identity/oauth/token"),
-                            },
-                            Password = new OpenApiOAuthFlow
-                            {
-                                TokenUrl = new Uri(configuration["EndPoints:AuthenticationAPI"] + "/identity/oauth/token"),
-                            }
-                        },
+                        Type = SecuritySchemeType.Http,
+                        Scheme = "bearer",
+                        BearerFormat = "JWT",
                         In = ParameterLocation.Header,
                         Name = HeaderNames.Authorization,
-                        Type = SecuritySchemeType.OAuth2
-                    };
-
-                    c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, jwtSecurityScheme);   
-                    c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
-                    {
-                        [new OpenApiSecuritySchemeReference("bearer", document)] = new List<string>()
+                        Description = "Access token JWT, valable 15 minutes",
                     });
+                    // Only on [Authorize] endpoints
+                    c.OperationFilter<BearerSecurityOperationFilter>();
                 });
                 services.ConfigureOptions<CollectionAppSwaggerOptions>();
             }

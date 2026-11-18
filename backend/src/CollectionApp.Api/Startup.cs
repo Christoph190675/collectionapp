@@ -5,11 +5,16 @@ using CollectionApp.Api.Http.Filters;
 using CollectionApp.Api.Http.Middlewares;
 using CollectionApp.Api.Http.Security;
 using CollectionApp.Api.Swagger;
+using CollectionApp.Application.Auth;
 using CollectionApp.Application.Messaging;
 using CollectionApp.Application.Security;
 using CollectionApp.Infrastructure;
+using CollectionApp.Infrastructure.Security;
 using CollectionApp.Infrastructure.Utils;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -55,11 +60,17 @@ namespace CollectionApp.Api
             services.AddControllers(options =>
             {
                 options.Filters.Add<HttpExceptionFilter>();
+                // Missing or empty fields are reported by the FluentValidation validators, field by field (FR-017)
+                options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
             });
 
             //Initialize application
             ///////////////////////////////////////////
             InitializeServices(services, Configuration);
+
+            //Authentication: JWT access tokens issued by JwtTokenService
+            ///////////////////////////////////////////
+            ConfigureAuthentication(services);
 
             //CORS: exact (case-insensitive) match on the configured origins, never a prefix match
             ///////////////////////////
@@ -237,6 +248,40 @@ namespace CollectionApp.Api
 
             // Persistence & external resources
             services.AddInfrastructure(configuration);
+        }
+
+        private void ConfigureAuthentication(IServiceCollection services)
+        {
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+
+            // Configured from the container: AuthOptions and the TimeProvider (FakeTimeProvider in tests)
+            services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+                .Configure<IOptions<AuthOptions>, TimeProvider>((options, authOptions, timeProvider) =>
+                {
+                    options.MapInboundClaims = false;
+                    options.TimeProvider = timeProvider;
+                    // 5 min by default: access would last up to 20 min after logout (FR-014)
+                    var clockSkew = TimeSpan.FromSeconds(30);
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidIssuer = authOptions.Value.Issuer,
+                        ValidAudience = authOptions.Value.Audience,
+                        IssuerSigningKey = JwtTokenService.CreateSigningKey(authOptions.Value),
+                        ValidAlgorithms = [SecurityAlgorithms.HmacSha256],
+                        ClockSkew = clockSkew,
+                        NameClaimType = ClaimPrincipalTypes.Subject,
+                        RequireExpirationTime = true,
+                        // Lifetime checked with the application clock: the token handler would use DateTime.UtcNow
+                        LifetimeValidator = (notBefore, expires, _, _) =>
+                        {
+                            var now = timeProvider.GetUtcNow().UtcDateTime;
+                            return (notBefore == null || notBefore.Value <= now + clockSkew)
+                                && expires != null && now - clockSkew < expires.Value;
+                        },
+                    };
+                });
+
+            services.AddAuthorization();
         }
 
         private void ConfigureApiVersion(IServiceCollection services)

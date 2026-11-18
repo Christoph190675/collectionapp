@@ -23,7 +23,9 @@ describe('StatusPage', () => {
     fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
   const text = (testId: string): string => element(testId)?.textContent?.replace(/\s+/g, ' ').trim() ?? '';
 
+  /** Opening from the tab bar: page creation (ngOnInit) then Ionic's ionViewWillEnter. */
   function enter(): void {
+    fixture.detectChanges();
     page.ionViewWillEnter();
     fixture.detectChanges();
   }
@@ -35,9 +37,32 @@ describe('StatusPage', () => {
       providers: [{ provide: HealthService, useValue: { check } }],
     }).compileComponents();
 
+    // No first detectChanges here: it runs ngOnInit, which already starts a check (FR-002)
     fixture = TestBed.createComponent(StatusPage);
     page = fixture.componentInstance;
+  });
+
+  it("US1-AC3 : démarrage direct sur l'onglet (création sans ionViewWillEnter) → une vérification", () => {
     fixture.detectChanges();
+
+    expect(check).toHaveBeenCalledTimes(1);
+    expect(text('api-status')).toContain('OK');
+    expect(text('database-status')).toContain('OK');
+  });
+
+  it('US1-AC3 : création puis ionViewWillEnter → une seule vérification', () => {
+    enter();
+
+    expect(check).toHaveBeenCalledTimes(1);
+  });
+
+  it("FR-002 : retour sur l'onglet après l'avoir quitté → nouvelle vérification", () => {
+    enter();
+    page.ionViewWillLeave();
+
+    page.ionViewWillEnter();
+
+    expect(check).toHaveBeenCalledTimes(2);
   });
 
   it('US1-AC1 : affiche API = OK et Base de données = OK', () => {

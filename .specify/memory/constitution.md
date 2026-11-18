@@ -42,6 +42,9 @@ Dépendances autorisées entre projets (toute autre référence est interdite) :
 - `Api` → `Application`, `Api` → `Infrastructure` (composition / injection de dépendances).
   `Api` MUST NOT référencer directement `Domain` : les contrôleurs ne manipulent que les DTO
   et messages définis dans `Application`.
+  **Seule exception** : la couche de traduction des erreurs HTTP de `Api` (`Http/Exceptions/`)
+  MAY référencer `Domain.Exceptions` pour associer chaque exception métier à un code HTTP.
+  Aucun contrôleur ni aucun autre composant de `Api` ne référence `Domain`.
 - `Infrastructure` → `Application`, `Infrastructure` → `Domain`.
 - `Application` → `Domain`.
 - `Domain` MUST NOT dépendre d'aucun autre projet ni d'aucun framework d'infrastructure.
@@ -133,4 +136,4 @@ Quality gates avant merge :
 - Chaque plan et chaque revue de code MUST vérifier la conformité à cette constitution ;
   tout écart MUST être justifié explicitement ou corrigé.
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-28 | **Last Amended**: 2026-10-28
+**Version**: 1.1.0 | **Ratified**: 2026-10-28 | **Last Amended**: 2026-11-18

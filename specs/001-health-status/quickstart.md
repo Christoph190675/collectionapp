@@ -34,6 +34,7 @@ cd frontend; npm test -- --watch=false; cd ..
 | # | Étapes | Résultat attendu | Spec |
 |---|--------|------------------|------|
 | 1 | Base `collectionapp` vierge sur ton conteneur, `dotnet run --project backend/src/CollectionApp.Api`, `cd frontend; npm start`, ouvrir `http://localhost:8100/tabs/status` | API = OK, Base de données = **KO** (migration en attente) ; l'API n'a pas créé de table | US5-1, FR-014 |
+| 1b | Base migrée : ouvrir `http://localhost:8100/tabs/status` par l'URL, puis recharger la page (F5) | À chaque fois, sans appui sur « Relancer » : API = OK, Base de données = OK, une seule requête `/api/health` (onglet Réseau) | US1-3, FR-002 (amendement 2026-11-18) |
 | 2 | `dotnet ef database update -p backend/src/CollectionApp.Infrastructure -s backend/src/CollectionApp.Api`, puis bouton « Relancer » | API = OK, Base de données = OK, heure mise à jour | US1-1, US3-1, US5-2 |
 | 3 | Relancer la commande `dotnet ef database update` | « No migrations were applied », aucune erreur | US5-3 |
 | 4 | Arrêter ton conteneur MySQL, puis « Relancer » | Réponse en moins de 3 s : API = OK, Base de données = KO | US2-1 |

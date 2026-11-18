@@ -13,5 +13,19 @@
     </ion-toolbar>
   </ion-header>
 
+  @if (currentUser(); as user) {
+    <ion-list>
+      <ion-item>
+        <ion-label data-testid="current-user">
+          {{ user.firstName }} {{ user.lastName }}
+          <p>{{ user.email }}</p>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+    <ion-button class="ion-margin" expand="block" color="medium" [disabled]="loggingOut()" (click)="logout()" data-testid="logout">
+      Se déconnecter
+    </ion-button>
+  }
+
   <app-explore-container name="Tab 3 page"></app-explore-container>
 </ion-content>

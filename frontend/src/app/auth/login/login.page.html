@@ -1,0 +1,48 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Connexion</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    @if (sessionExpired()) {
+      <ion-text color="warning">
+        <p class="global-error" data-testid="session-expired" role="status">{{ sessionExpiredMessage }}</p>
+      </ion-text>
+    }
+    @if (errors().global; as message) {
+      <ion-text color="danger">
+        <p class="global-error" data-testid="global-error" role="alert">{{ message }}</p>
+      </ion-text>
+    }
+
+    <ion-list lines="full">
+      <ion-item>
+        <ion-input label="Adresse e-mail" labelPlacement="stacked" type="email" inputmode="email" formControlName="email" autocomplete="email"></ion-input>
+      </ion-item>
+      @if (fieldError('email'); as message) {
+        <ion-note color="danger" data-testid="error-email">{{ message }}</ion-note>
+      }
+
+      <ion-item>
+        <ion-input label="Mot de passe" labelPlacement="stacked" type="password" formControlName="password" autocomplete="current-password"></ion-input>
+      </ion-item>
+      @if (fieldError('password'); as message) {
+        <ion-note color="danger" data-testid="error-password">{{ message }}</ion-note>
+      }
+    </ion-list>
+
+    <ion-button type="submit" expand="block" [disabled]="submitting()" data-testid="submit">
+      @if (submitting()) {
+        <ion-spinner name="crescent"></ion-spinner>
+      } @else {
+        Se connecter
+      }
+    </ion-button>
+  </form>
+
+  <p class="switch">
+    <a routerLink="/register" data-testid="register-link">Créer un compte</a>
+  </p>
+</ion-content>

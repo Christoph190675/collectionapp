@@ -1,0 +1,363 @@
+openapi: 3.0.3
+info:
+  title: CollectionApp API - Auth
+  version: 1.0.0
+  description: >
+    Inscription, connexion, renouvellement de session, déconnexion et utilisateur courant
+    (spec 002-user-auth). Les erreurs utilisent le format commun `Error` de l'API.
+    Les routes POST /api/auth/* sont limitées à 20 requêtes / minute / IP (R12) : au-delà, 429.
+paths:
+  /api/auth/register:
+    post:
+      operationId: register
+      summary: Créer un compte (US1)
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              lastName: Pinto
+              firstName: Christoph
+              email: ' Christoph@Example.fr '
+              password: Collec2026
+              passwordConfirmation: Collec2026
+      responses:
+        '201':
+          description: >
+            Compte créé avec le droit `User` (FR-006). Aucune session n'est ouverte : l'app
+            redirige vers l'écran de connexion (US1-1). E-mail renvoyé normalisé.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              example:
+                id: 1
+                lastName: Pinto
+                firstName: Christoph
+                email: christoph@example.fr
+                claims: [User]
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          description: E-mail déjà utilisé, insensible à la casse et aux espaces (FR-002, US1-2).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                id: 6f1c2a9e-0c1d-4f1e-9a51-2b7e0c4d8a11
+                code: AlreadyExistException
+                message: Cette adresse e-mail est déjà utilisée
+                status: 409
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/auth/login:
+    post:
+      operationId: login
+      summary: Se connecter (US2)
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: christoph@example.fr
+              password: Collec2026
+      responses:
+        '200':
+          description: Connexion réussie ; compteur d'échecs remis à zéro (FR-011).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSession'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          description: >
+            E-mail inconnu OU mot de passe incorrect : réponse strictement identique dans les
+            deux cas (FR-008, SC-005).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                id: 0b8e4f7a-3d21-4c55-8f0e-9e2d6b1a7c34
+                code: UnauthorizedException
+                message: E-mail ou mot de passe incorrect
+                status: 401
+        '423':
+          description: >
+            5 échecs consécutifs depuis moins de 15 minutes : refus sans vérifier le mot de
+            passe et sans prolonger le blocage (FR-010, US2-4).
+          headers:
+            Retry-After:
+              description: Secondes restantes avant la fin du blocage.
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                id: 9a7d3c2b-1e4f-4a6b-8c9d-0e1f2a3b4c5d
+                code: LockedException
+                message: Compte temporairement bloqué. Réessayez dans 15 minutes.
+                status: 423
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/auth/refresh:
+    post:
+      operationId: refresh
+      summary: Renouveler la session (rotation du refresh token, R3)
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: >
+            Nouveau couple de tokens ; l'ancien refresh token est révoqué ; l'expiration de la
+            session (refreshTokenExpiresAt) est inchangée (FR-013).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSession'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          description: Refresh token inconnu, révoqué ou expiré (US3-2, US4-3).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/auth/logout:
+    post:
+      operationId: logout
+      summary: Se déconnecter de l'appareil courant (US3, R4)
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '204':
+          description: >
+            Refresh token révoqué (idempotent : 204 aussi s'il l'était déjà ou s'il appartient
+            à un autre utilisateur, sans effet dans ce dernier cas).
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/auth/me:
+    get:
+      operationId: getCurrentUser
+      summary: Utilisateur courant (vérification de session au démarrage, US2-7)
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Utilisateur authentifié et ses droits.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Access token JWT HS256, valable 15 minutes (R2).
+
+  responses:
+    ValidationError:
+      description: >
+        Données invalides (FR-003, FR-004, US1-3, US1-4) ; une entrée par champ en erreur
+        dans `fields`, pour affichage au niveau du champ (FR-017).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            id: 3c4d5e6f-7a8b-4c9d-8e0f-1a2b3c4d5e6f
+            code: ValidationException
+            message: Les données saisies sont invalides
+            status: 400
+            fields:
+              - field: email
+                message: L'adresse e-mail n'est pas valide
+              - field: password
+                message: Le mot de passe doit contenir entre 8 et 128 caractères, dont une lettre et un chiffre
+    Unauthenticated:
+      description: Access token absent, invalide ou expiré.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    TooManyRequests:
+      description: Limite de 20 requêtes / minute / IP dépassée (R12).
+
+  schemas:
+    RegisterRequest:
+      type: object
+      additionalProperties: false
+      required: [lastName, firstName, email, password, passwordConfirmation]
+      properties:
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 100
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 100
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          description: Normalisé côté API (espaces retirés, minuscules).
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 128
+          description: Au moins une lettre et un chiffre (FR-004).
+        passwordConfirmation:
+          type: string
+          format: password
+          description: Doit être identique à `password`.
+
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          maxLength: 254
+        password:
+          type: string
+          format: password
+          maxLength: 128
+
+    RefreshRequest:
+      type: object
+      additionalProperties: false
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+          description: Valeur opaque reçue à la connexion ou au dernier renouvellement.
+
+    AuthSession:
+      type: object
+      additionalProperties: false
+      required: [accessToken, accessTokenExpiresAt, refreshToken, refreshTokenExpiresAt, user]
+      properties:
+        accessToken:
+          type: string
+          description: JWT à envoyer dans `Authorization: Bearer`.
+        accessTokenExpiresAt:
+          type: string
+          format: date-time
+          description: Instant UTC (connexion/renouvellement + 15 min).
+        refreshToken:
+          type: string
+          description: Valeur opaque (64 octets, base64url) ; jamais stockée en clair côté API.
+        refreshTokenExpiresAt:
+          type: string
+          format: date-time
+          description: Fin de session absolue (connexion + 7 jours).
+        user:
+          $ref: '#/components/schemas/User'
+      example:
+        accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIn0.c2lnbmF0dXJl
+        accessTokenExpiresAt: '2026-11-18T10:15:00Z'
+        refreshToken: 3q2-7wbmGx8Zr0uQk1mF9pL2sV4tY6wA8cE0gI2kM4oQ6sU8wY0aC2eG4iK6mO8q
+        refreshTokenExpiresAt: '2026-11-25T10:00:00Z'
+        user:
+          id: 1
+          lastName: Pinto
+          firstName: Christoph
+          email: christoph@example.fr
+          claims: [User]
+
+    User:
+      type: object
+      additionalProperties: false
+      required: [id, lastName, firstName, email, claims]
+      description: Jamais de mot de passe ni de hash (FR-005).
+      properties:
+        id:
+          type: integer
+        lastName:
+          type: string
+        firstName:
+          type: string
+        email:
+          type: string
+        claims:
+          type: array
+          items:
+            type: string
+          description: Noms des droits de l'utilisateur.
+
+    Error:
+      type: object
+      description: >
+        Format d'erreur commun de l'API (HttpExceptionBodyError, objet à plat). `details` et
+        `stackTrace` ne sont présents que pour un utilisateur possédant le droit `LogRead`.
+      required: [id, code, message, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          description: Nom de l'exception (ex. UnauthorizedException).
+        message:
+          type: string
+          description: Message lisible, en français, affichable tel quel.
+        status:
+          type: integer
+        fields:
+          type: array
+          description: Présent uniquement pour une erreur de validation (400).
+          items:
+            type: object
+            required: [field, message]
+            properties:
+              field:
+                type: string
+                description: Nom de la propriété de la requête (camelCase).
+              message:
+                type: string
+        details:
+          type: string
+        stackTrace:
+          type: string

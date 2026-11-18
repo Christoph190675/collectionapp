@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using CollectionApp.Application.Security;
 
 namespace CollectionApp.Api.Http.Security
 {
